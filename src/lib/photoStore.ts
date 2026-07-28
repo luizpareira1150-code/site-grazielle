@@ -254,6 +254,21 @@ export function usePhotoStore() {
     };
   }, []);
 
+  // Auto-sync browser localStorage photos to disk via /api/save-photo
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      PHOTO_SLOTS.forEach((slot) => {
+        try {
+          const custom = localStorage.getItem(`gn_photo_${slot.key}`) ||
+            (localStorage.getItem('gn_raw_photo_' + slot.key));
+          if (custom && custom.startsWith('data:image/')) {
+            persistPhotoToProject(slot.key, custom);
+          }
+        } catch (e) {}
+      });
+    }
+  }, []);
+
   const getPhoto = useCallback(
     (key: string) => photos[key] || DEFAULT_PHOTOS[key] || '',
     [photos]

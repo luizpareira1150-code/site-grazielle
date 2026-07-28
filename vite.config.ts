@@ -42,42 +42,47 @@ function photoSaverPlugin(): Plugin {
                 fs.writeFileSync(path.join(assetsImagesDir, fileName), buffer);
               }
 
-              // 3. Update src/data/embeddedPhotos.ts with the raw dataUrl base64 so it embeds directly into JS bundle for Vercel/ZIP
+              // 3. Update src/data/embeddedPhotos.ts with static path references
               const embeddedPhotosPath = path.resolve(__dirname, 'src/data/embeddedPhotos.ts');
-              let fileContent = '';
-              if (fs.existsSync(embeddedPhotosPath)) {
-                fileContent = fs.readFileSync(embeddedPhotosPath, 'utf-8');
+              
+              const embeddedMap: Record<string, string> = {
+                hero_portrait: "/images/hero_portrait.png",
+                about_portrait: "/images/about_portrait.png",
+                psychotherapy_hero: "/images/psychotherapy_hero.png",
+                lectures_banner: "/images/lectures_banner.png",
+                neuropsych_materials: "/images/neuropsych_materials.png",
+              };
+
+              // Scan public/images directory for any png files
+              if (fs.existsSync(publicImagesDir)) {
+                const files = fs.readdirSync(publicImagesDir);
+                files.forEach(f => {
+                  if (f.endsWith('.png')) {
+                    const key = f.replace('.png', '');
+                    embeddedMap[key] = `/images/${f}`;
+                  }
+                });
               }
 
-              let currentMap: Record<string, string> = {};
-              try {
-                const match = fileContent.match(/export const EMBEDDED_PHOTOS: Record<string, string> = ({[\s\S]*?});/);
-                if (match) {
-                  currentMap = JSON.parse(match[1]);
-                }
-              } catch (e) {
-                // fallback
-              }
-
-              currentMap[photoKey] = dataUrl;
+              const defaultPhotosMap: Record<string, string> = {
+                hero_portrait: embeddedMap.hero_portrait || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+                about_portrait: embeddedMap.about_portrait || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+                office_1: embeddedMap.office_1 || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800",
+                office_2: embeddedMap.office_2 || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800",
+                office_3: embeddedMap.office_3 || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800",
+                psychotherapy_hero: embeddedMap.psychotherapy_hero || "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+                neuropsych_materials: embeddedMap.neuropsych_materials || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800",
+                lectures_banner: embeddedMap.lectures_banner || "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&q=80&w=800",
+                audience_teens: embeddedMap.audience_teens || "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+                audience_adults: embeddedMap.audience_adults || "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800"
+              };
 
               const newFileContent = `// Arquivo de persistência direta de fotos no código-fonte.
 // As fotos configuradas ou atualizadas aqui são empacotadas no bundle final (ZIP, GitHub, Vercel).
 
-export const DEFAULT_PHOTOS: Record<string, string> = {
-  hero_portrait: "/images/hero_portrait.png",
-  about_portrait: "/images/about_portrait.png",
-  office_1: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800",
-  office_2: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800",
-  office_3: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800",
-  psychotherapy_hero: "/images/psychotherapy_hero.png",
-  neuropsych_materials: "/images/neuropsych_materials.png",
-  lectures_banner: "/images/lectures_banner.png",
-  audience_teens: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
-  audience_adults: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800"
-};
+export const DEFAULT_PHOTOS: Record<string, string> = ${JSON.stringify(defaultPhotosMap, null, 2)};
 
-export const EMBEDDED_PHOTOS: Record<string, string> = ${JSON.stringify(currentMap, null, 2)};
+export const EMBEDDED_PHOTOS: Record<string, string> = ${JSON.stringify(embeddedMap, null, 2)};
 `;
 
               fs.writeFileSync(embeddedPhotosPath, newFileContent);
