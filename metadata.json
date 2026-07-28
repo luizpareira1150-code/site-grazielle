@@ -1,0 +1,6 @@
+{
+  "name": "Grazielle Nacarate - Psicóloga e Neuropsicóloga",
+  "description": "Site profissional de Grazielle Nacarate, Psicóloga e Neuropsicóloga em Barra Mansa - RJ. Avaliação neuropsicológica, psicoterapia e palestras.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

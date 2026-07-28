@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Lora', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Color Palette Tokens */
+    --color-forest: #56685e;
+    --color-sage: #829287;
+    --color-sage-light: #e5ebe6;
+    --color-sand: #ded2c2;
+    --color-beige: #f1eae1;
+    --color-background: #f8f5f0;
+    --color-surface: #fcfbf8;
+    --color-ink: #252a27;
+    --color-muted: #626a65;
+    --color-border: #d6ddd7;
+    --color-white: #ffffff;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-serif-heading {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Accessibility Focus Ring Styles */
+:focus-visible {
+  outline: 2px solid #56685e;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Custom Scrollbar for smooth editorial feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f8f5f0;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6ddd7;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #829287;
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
