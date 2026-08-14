@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { PHOTO_SLOTS, PhotoSlotConfig, usePhotoStore, getRawOriginal as getRawOriginalFromStore } from '../lib/photoStore';
+import React, { useState, useRef, useEffect } from 'react';
+import { PHOTO_SLOTS, usePhotoStore } from '../lib/photoStore';
 import { 
   X, 
   Upload, 
@@ -27,7 +27,7 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
   onClose,
   initialSlotKey = 'hero_portrait'
 }) => {
-  const { photos, savePhoto, resetPhoto, getRawOriginal, saveRawOriginal } = usePhotoStore();
+  const { photos, savePhoto, resetPhoto, getRawOriginal, saveRawOriginal, resetAllPhotos } = usePhotoStore();
   
   const [selectedSlotKey, setSelectedSlotKey] = useState<string>(initialSlotKey);
   const [imageSrc, setImageSrc] = useState<string>('');
@@ -40,6 +40,7 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const pointerIdRef = useRef<number | null>(null);
 
   // Status feedback
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -49,17 +50,20 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
 
   const activeSlot = PHOTO_SLOTS.find(s => s.key === selectedSlotKey) || PHOTO_SLOTS[0];
 
-  // Load raw uncropped original when slot changes
+  // A slot change starts a fresh edit. Deliberately do not depend on `photos`:
+  // saving changes that object and must never reset the current framing.
   useEffect(() => {
     if (selectedSlotKey) {
-      const rawUrl = getRawOriginalFromStore(selectedSlotKey) || photos[selectedSlotKey] || '';
+      const rawUrl = getRawOriginal(selectedSlotKey) || photos[selectedSlotKey] || `/images/${selectedSlotKey}.jpg`;
       setImageSrc(rawUrl);
       setZoom(1);
       setPan({ x: 0, y: 0 });
       setRotation(0);
       setSaveSuccessMsg(null);
     }
-  }, [selectedSlotKey, photos]);
+    // The editor is intentionally initialized only when the chosen photo slot changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlotKey]);
 
   // Measure natural dimensions of image for aspect ratio calculations
   useEffect(() => {
@@ -98,40 +102,53 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
     }
   };
 
-  // Mouse / Touch Dragging logic for panning the image
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  const clampZoom = (value: number) => Math.min(4, Math.max(1, value));
+
+  const clampPan = (nextPan: { x: number; y: number }, nextZoom = zoom) => {
+    const viewportWidth = 360;
+    const viewportHeight = 360 / activeSlot.aspectRatioValue;
+    const maxX = Math.max(0, (baseWidth * nextZoom - viewportWidth) / 2);
+    const maxY = Math.max(0, (baseHeight * nextZoom - viewportHeight) / 2);
+
+    return {
+      x: Math.min(maxX, Math.max(-maxX, nextPan.x)),
+      y: Math.min(maxY, Math.max(-maxY, nextPan.y)),
+    };
+  };
+
+  const setZoomAndKeepFrame = (nextZoom: number) => {
+    const safeZoom = clampZoom(nextZoom);
+    setZoom(safeZoom);
+    setPan((currentPan) => clampPan(currentPan, safeZoom));
+  };
+
+  // Pointer events support mouse, trackpad and touch with the same behaviour.
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pointerIdRef.current = e.pointerId;
     setIsDragging(true);
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     panStartRef.current = { ...pan };
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || pointerIdRef.current !== e.pointerId) return;
     const dx = e.clientX - dragStartRef.current.x;
     const dy = e.clientY - dragStartRef.current.y;
-    setPan({
+    setPan(clampPan({
       x: panStartRef.current.x + dx,
       y: panStartRef.current.y + dy,
-    });
-  }, [isDragging]);
+    }));
+  };
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerIdRef.current !== e.pointerId) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
     }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+    pointerIdRef.current = null;
+    setIsDragging(false);
+  };
 
   // Compute base preview box size for image naturally matching aspect
   const vpAspect = activeSlot.aspectRatioValue;
@@ -202,13 +219,13 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
         const panYCanvas = pan.y * scaleRatio;
 
         ctx.save();
-        ctx.translate(targetWidth / 2, targetHeight / 2);
+        ctx.translate(targetWidth / 2 + panXCanvas, targetHeight / 2 + panYCanvas);
         ctx.rotate((rotation * Math.PI) / 180);
 
         ctx.drawImage(
           img,
-          -scaledW / 2 + panXCanvas,
-          -scaledH / 2 + panYCanvas,
+          -scaledW / 2,
+          -scaledH / 2,
           scaledW,
           scaledH
         );
@@ -235,7 +252,7 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
       }
 
       const result = await savePhoto(selectedSlotKey, croppedDataUrl);
-      setSaveSuccessMsg(result.message);
+      setSaveSuccessMsg(result.message || 'Enquadramento salvo com sucesso.');
     } catch (err) {
       console.error('Error recording photo', err);
     } finally {
@@ -248,7 +265,19 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setRotation(0);
-    setSaveSuccessMsg('Restaurado para a foto padrão original.');
+    const freshSrc = `/images/${selectedSlotKey}.jpg`;
+    setImageSrc(freshSrc);
+    setSaveSuccessMsg('Foto deste espaço restaurada para o padrão.');
+  };
+
+  const handleResetAllSlots = () => {
+    resetAllPhotos();
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setRotation(0);
+    const freshSrc = `/images/${selectedSlotKey}.jpg`;
+    setImageSrc(freshSrc);
+    setSaveSuccessMsg('Todas as fotos foram restauradas para os padrões originais!');
   };
 
   if (!isOpen) return null;
@@ -380,7 +409,14 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
                     width: '360px',
                     height: `${360 / activeSlot.aspectRatioValue}px`,
                   }}
-                  onMouseDown={handleMouseDown}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                  onWheel={(e) => {
+                    e.preventDefault();
+                    setZoomAndKeepFrame(zoom - e.deltaY * 0.001);
+                  }}
                 >
                   {imageSrc ? (
                     <div
@@ -388,7 +424,7 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
                       style={{
                         width: `${baseWidth}px`,
                         height: `${baseHeight}px`,
-                        transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)`,
+                        transform: `translate3d(${pan.x}px, ${pan.y}px, 0) rotate(${rotation}deg) scale(${zoom})`,
                         transformOrigin: 'center center',
                       }}
                     >
@@ -434,11 +470,11 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
 
                 <input
                   type="range"
-                  min="0.3"
-                  max="3.5"
+                  min="1"
+                  max="4"
                   step="0.05"
                   value={zoom}
-                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  onChange={(e) => setZoomAndKeepFrame(parseFloat(e.target.value))}
                   className="flex-1 accent-[#56685E] cursor-pointer"
                 />
 
@@ -450,6 +486,22 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
               {/* Auxiliary Controls */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#D6DDD7]/70">
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setZoomAndKeepFrame(zoom - 0.1)}
+                    disabled={zoom <= 1}
+                    className="px-3 py-1.5 rounded-xl bg-[#FCFBF8] border border-[#D6DDD7] text-xs font-medium text-[#252A27] hover:bg-[#E5EBE6] disabled:opacity-40 flex items-center gap-1.5 transition-colors"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                    <span>Afastar</span>
+                  </button>
+                  <button
+                    onClick={() => setZoomAndKeepFrame(zoom + 0.1)}
+                    disabled={zoom >= 4}
+                    className="px-3 py-1.5 rounded-xl bg-[#FCFBF8] border border-[#D6DDD7] text-xs font-medium text-[#252A27] hover:bg-[#E5EBE6] disabled:opacity-40 flex items-center gap-1.5 transition-colors"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                    <span>Aproximar</span>
+                  </button>
                   <button
                     onClick={() => setRotation((r) => (r + 90) % 360)}
                     className="px-3 py-1.5 rounded-xl bg-[#FCFBF8] border border-[#D6DDD7] text-xs font-medium text-[#252A27] hover:bg-[#E5EBE6] flex items-center gap-1.5 transition-colors"
@@ -471,12 +523,21 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
                   </button>
                 </div>
 
-                <button
-                  onClick={handleResetSlot}
-                  className="text-xs text-[#829287] hover:text-[#56685E] underline transition-colors"
-                >
-                  Restaurar foto original padrão
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleResetSlot}
+                    className="text-xs text-[#829287] hover:text-[#56685E] underline transition-colors"
+                  >
+                    Restaurar esta foto ao padrão
+                  </button>
+                  <span className="text-[#D6DDD7]">•</span>
+                  <button
+                    onClick={handleResetAllSlots}
+                    className="text-xs text-[#829287] hover:text-red-700 underline transition-colors"
+                  >
+                    Restaurar todas ao padrão
+                  </button>
+                </div>
               </div>
 
             </div>

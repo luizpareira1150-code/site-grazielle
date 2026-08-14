@@ -32,61 +32,33 @@ function photoSaverPlugin(): Plugin {
               fs.mkdirSync(publicImagesDir, { recursive: true });
               fs.mkdirSync(assetsImagesDir, { recursive: true });
 
-              // 2. Extract base64 data & write binary PNG/JPG files
+              // 2. Export exactly one deployable JPEG per slot. The website uses
+              // /images/<slot>.jpg, so there is no second format that can diverge.
               const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
               if (matches && matches.length === 3) {
-                const mimeType = matches[1];
                 const buffer = Buffer.from(matches[2], 'base64');
-                const ext = mimeType.includes('png') ? 'png' : 'jpg';
-
-                fs.writeFileSync(path.join(publicImagesDir, `${photoKey}.${ext}`), buffer);
-                fs.writeFileSync(path.join(publicImagesDir, `${photoKey}.png`), buffer);
                 fs.writeFileSync(path.join(publicImagesDir, `${photoKey}.jpg`), buffer);
-
-                if (fs.existsSync(assetsImagesDir)) {
-                  fs.writeFileSync(path.join(assetsImagesDir, `${photoKey}.${ext}`), buffer);
-                  fs.writeFileSync(path.join(assetsImagesDir, `${photoKey}.png`), buffer);
-                  fs.writeFileSync(path.join(assetsImagesDir, `${photoKey}.jpg`), buffer);
-                }
+                fs.writeFileSync(path.join(assetsImagesDir, `${photoKey}.jpg`), buffer);
               }
 
-              // 3. Keep src/data/embeddedPhotos.ts clean with static paths
+              // 3. Keep the source module lightweight. Deployment reads the images
+              // directly from public/images, avoiding stale or truncated base64 blobs.
               const embeddedPhotosPath = path.resolve(__dirname, 'src/data/embeddedPhotos.ts');
-              
-              const staticPaths: Record<string, string> = {
-                "hero_portrait": "/images/hero_portrait.jpg",
-                "about_portrait": "/images/about_portrait.jpg",
-                "office_1": "/images/office_1.jpg",
-                "office_2": "/images/office_2.jpg",
-                "office_3": "/images/office_3.jpg",
-                "psychotherapy_hero": "/images/psychotherapy_hero.jpg",
-                "neuropsych_materials": "/images/neuropsych_materials.jpg",
-                "lectures_banner": "/images/lectures_banner.jpg",
-                "audience_children": "/images/audience_children.jpg",
-                "audience_teens": "/images/audience_teens.jpg",
-                "audience_adults": "/images/audience_adults.jpg",
-              };
+              const newFileContent = `// As fotos de produção são arquivos estáticos em public/images.
+// Não embuta Base64 aqui: isso evita arquivos corrompidos e mantém o bundle leve.
 
-              const newFileContent = `/**
- * Static image mappings pointing to /public/images
- * Vite copies the public/ folder directly to dist/ during build,
- * guaranteeing fast, lightweight, and 100% reliable image loading on Vercel and any production server.
- */
+export const DEFAULT_PHOTOS: Record<string, string> = {};
 
-export const DEFAULT_PHOTOS: Record<string, string> = ${JSON.stringify(staticPaths, null, 2)};
-
-export const EMBEDDED_PHOTOS: Record<string, string> = {
-  ...DEFAULT_PHOTOS,
-};
+export const EMBEDDED_PHOTOS: Record<string, string> = {};
 `;
 
-              fs.writeFileSync(embeddedPhotosPath, newFileContent);
+              fs.writeFileSync(embeddedPhotosPath, newFileContent, 'utf-8');
 
               res.statusCode = 200;
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ 
                 success: true, 
-                message: `Foto '${photoKey}' gravada fisicamente em public/images/!` 
+                message: `Foto '${photoKey}' gravada em public/images/${photoKey}.jpg e pronta para o deploy.` 
               }));
 
             } catch (err: any) {

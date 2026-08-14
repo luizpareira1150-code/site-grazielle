@@ -110,24 +110,59 @@ const listeners = new Set<Listener>();
 let memoryPhotosCache: Record<string, string> | null = null;
 let memoryRawOriginalsCache: Record<string, string> | null = null;
 
+function isValidPhotoData(val: unknown): boolean {
+  if (typeof val !== 'string' || !val.trim()) return false;
+  // If base64 data URL, ensure it starts properly and does not contain corruption artifacts
+  if (val.startsWith('data:image/')) {
+    if (val.includes('77+977+9') || val.length < 100) return false;
+    return true;
+  }
+  // If static public path or external URL
+  if (val.startsWith('/') || val.startsWith('http://') || val.startsWith('https://')) {
+    return true;
+  }
+  return false;
+}
+
 function loadInitialPhotos(): Record<string, string> {
-  const merged = { ...DEFAULT_PHOTOS };
+  const merged: Record<string, string> = { ...DEFAULT_PHOTOS, ...EMBEDDED_PHOTOS };
+
+  // Guarantee clean static fallback for all defined slots
+  PHOTO_SLOTS.forEach((slot) => {
+    if (!merged[slot.key] || !isValidPhotoData(merged[slot.key])) {
+      merged[slot.key] = `/images/${slot.key}.jpg`;
+    }
+  });
+
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        for (const [key, val] of Object.entries(parsed)) {
-          if (typeof val === 'string' && (val.startsWith('data:image/') || val.startsWith('http://') || val.startsWith('https://'))) {
-            merged[key] = val;
+        if (parsed && typeof parsed === 'object') {
+          let hasCorrupted = false;
+          Object.entries(parsed).forEach(([k, v]) => {
+            if (isValidPhotoData(v)) {
+              merged[k] = v as string;
+            } else {
+              hasCorrupted = true;
+            }
+          });
+          // Clean up corrupted storage if detected
+          if (hasCorrupted) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
           }
         }
       }
       // Check individual slot overrides
       PHOTO_SLOTS.forEach((slot) => {
         const single = localStorage.getItem(`gn_photo_${slot.key}`);
-        if (single && (single.startsWith('data:image/') || single.startsWith('http://') || single.startsWith('https://'))) {
-          merged[slot.key] = single;
+        if (single) {
+          if (isValidPhotoData(single)) {
+            merged[slot.key] = single;
+          } else {
+            localStorage.removeItem(`gn_photo_${slot.key}`);
+          }
         }
       });
     } catch (e) {
@@ -138,12 +173,12 @@ function loadInitialPhotos(): Record<string, string> {
 }
 
 function loadInitialRawOriginals(): Record<string, string> {
-  const merged = { ...DEFAULT_PHOTOS };
+  const merged: Record<string, string> = { ...DEFAULT_PHOTOS, ...EMBEDDED_PHOTOS };
   if (typeof window !== 'undefined') {
     try {
       PHOTO_SLOTS.forEach((slot) => {
         const raw = localStorage.getItem(`gn_raw_photo_${slot.key}`);
-        if (raw && (raw.startsWith('data:image/') || raw.startsWith('http://') || raw.startsWith('https://'))) {
+        if (raw && isValidPhotoData(raw)) {
           merged[slot.key] = raw;
         }
       });
@@ -179,7 +214,9 @@ export function getRawOriginal(key: string): string {
   if (!memoryRawOriginalsCache) {
     memoryRawOriginalsCache = loadInitialRawOriginals();
   }
-  return memoryRawOriginalsCache[key] || DEFAULT_PHOTOS[key] || '';
+  const val = memoryRawOriginalsCache[key] || DEFAULT_PHOTOS[key] || EMBEDDED_PHOTOS[key];
+  if (isValidPhotoData(val)) return val;
+  return `/images/${key}.jpg`;
 }
 
 function emitChange() {
@@ -193,7 +230,9 @@ export function getSavedPhotos(): Record<string, string> {
 
 export function getPhotoUrl(key: string): string {
   const photos = getSavedPhotos();
-  return photos[key] || DEFAULT_PHOTOS[key] || '';
+  const val = photos[key] || DEFAULT_PHOTOS[key] || EMBEDDED_PHOTOS[key];
+  if (isValidPhotoData(val)) return val;
+  return `/images/${key}.jpg`;
 }
 
 export async function persistPhotoToProject(key: string, dataUrl: string): Promise<{ success: boolean; message: string }> {
@@ -240,17 +279,45 @@ export async function persistPhotoToProject(key: string, dataUrl: string): Promi
 
 export function resetPhotoSlot(key: string) {
   const memory = getMemoryPhotos();
-  delete memory[key];
+  const defaultVal = DEFAULT_PHOTOS[key] || EMBEDDED_PHOTOS[key] || `/images/${key}.jpg`;
+  memory[key] = defaultVal;
+  if (memoryRawOriginalsCache) {
+    memoryRawOriginalsCache[key] = defaultVal;
+  }
   emitChange();
 
   if (typeof window !== 'undefined') {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(memory));
       localStorage.removeItem(`gn_photo_${key}`);
+      localStorage.removeItem(`gn_raw_photo_${key}`);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(memory));
     } catch (e) {
       console.warn('Could not reset photo in localStorage', e);
     }
   }
+}
+
+export function resetAllPhotos() {
+  const memory = getMemoryPhotos();
+  PHOTO_SLOTS.forEach((slot) => {
+    const defaultVal = DEFAULT_PHOTOS[slot.key] || EMBEDDED_PHOTOS[slot.key] || `/images/${slot.key}.jpg`;
+    memory[slot.key] = defaultVal;
+    if (memoryRawOriginalsCache) {
+      memoryRawOriginalsCache[slot.key] = defaultVal;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(`gn_photo_${slot.key}`);
+        localStorage.removeItem(`gn_raw_photo_${slot.key}`);
+      } catch (e) {}
+    }
+  });
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch (e) {}
+  }
+  emitChange();
 }
 
 export function usePhotoStore() {
@@ -258,7 +325,7 @@ export function usePhotoStore() {
 
   useEffect(() => {
     const handleChange = () => {
-      setPhotos(getSavedPhotos());
+      setPhotos({ ...getSavedPhotos() });
     };
     listeners.add(handleChange);
     return () => {
@@ -266,43 +333,39 @@ export function usePhotoStore() {
     };
   }, []);
 
-  // Auto-sync browser localStorage photos to disk via /api/save-photo
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      PHOTO_SLOTS.forEach((slot) => {
-        try {
-          const custom = localStorage.getItem(`gn_photo_${slot.key}`) ||
-            (localStorage.getItem('gn_raw_photo_' + slot.key));
-          if (custom && custom.startsWith('data:image/')) {
-            persistPhotoToProject(slot.key, custom);
-          }
-        } catch (e) {}
-      });
-    }
-  }, []);
-
   const getPhoto = useCallback(
-    (key: string) => photos[key] || DEFAULT_PHOTOS[key] || '',
+    (key: string) => {
+      const val = photos[key] || DEFAULT_PHOTOS[key] || EMBEDDED_PHOTOS[key];
+      if (isValidPhotoData(val)) return val;
+      return `/images/${key}.jpg`;
+    },
     [photos]
   );
 
   const getRawOriginalCb = useCallback(
-    (key: string) => getRawOriginal(key) || photos[key] || DEFAULT_PHOTOS[key] || '',
+    (key: string) => {
+      const val = getRawOriginal(key) || photos[key] || DEFAULT_PHOTOS[key] || EMBEDDED_PHOTOS[key];
+      if (isValidPhotoData(val)) return val;
+      return `/images/${key}.jpg`;
+    },
     [photos]
   );
 
   const saveRawOriginalCb = useCallback(
-    (key: string, dataUrl: string) => saveRawOriginal(key, dataUrl),
+    (key: string, dataUrl: string) => {
+      if (isValidPhotoData(dataUrl)) {
+        saveRawOriginal(key, dataUrl);
+      }
+    },
     []
   );
 
   const resetPhotoCb = useCallback((key: string) => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem(`gn_raw_photo_${key}`);
-      } catch (e) {}
-    }
     resetPhotoSlot(key);
+  }, []);
+
+  const resetAllPhotosCb = useCallback(() => {
+    resetAllPhotos();
   }, []);
 
   return {
@@ -312,5 +375,6 @@ export function usePhotoStore() {
     saveRawOriginal: saveRawOriginalCb,
     savePhoto: persistPhotoToProject,
     resetPhoto: resetPhotoCb,
+    resetAllPhotos: resetAllPhotosCb,
   };
 }
