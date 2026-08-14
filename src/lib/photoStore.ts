@@ -111,18 +111,22 @@ let memoryPhotosCache: Record<string, string> | null = null;
 let memoryRawOriginalsCache: Record<string, string> | null = null;
 
 function loadInitialPhotos(): Record<string, string> {
-  const merged = { ...DEFAULT_PHOTOS, ...EMBEDDED_PHOTOS };
+  const merged = { ...DEFAULT_PHOTOS };
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        Object.assign(merged, parsed);
+        for (const [key, val] of Object.entries(parsed)) {
+          if (typeof val === 'string' && (val.startsWith('data:image/') || val.startsWith('http://') || val.startsWith('https://'))) {
+            merged[key] = val;
+          }
+        }
       }
       // Check individual slot overrides
       PHOTO_SLOTS.forEach((slot) => {
         const single = localStorage.getItem(`gn_photo_${slot.key}`);
-        if (single) {
+        if (single && (single.startsWith('data:image/') || single.startsWith('http://') || single.startsWith('https://'))) {
           merged[slot.key] = single;
         }
       });
@@ -134,12 +138,12 @@ function loadInitialPhotos(): Record<string, string> {
 }
 
 function loadInitialRawOriginals(): Record<string, string> {
-  const merged = { ...DEFAULT_PHOTOS, ...EMBEDDED_PHOTOS };
+  const merged = { ...DEFAULT_PHOTOS };
   if (typeof window !== 'undefined') {
     try {
       PHOTO_SLOTS.forEach((slot) => {
         const raw = localStorage.getItem(`gn_raw_photo_${slot.key}`);
-        if (raw) {
+        if (raw && (raw.startsWith('data:image/') || raw.startsWith('http://') || raw.startsWith('https://'))) {
           merged[slot.key] = raw;
         }
       });
