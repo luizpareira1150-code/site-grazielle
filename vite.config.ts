@@ -50,38 +50,34 @@ function photoSaverPlugin(): Plugin {
                 }
               }
 
-              // 3. Update src/data/embeddedPhotos.ts with base64 Data URLs
+              // 3. Keep src/data/embeddedPhotos.ts clean with static paths
               const embeddedPhotosPath = path.resolve(__dirname, 'src/data/embeddedPhotos.ts');
               
-              let fileContent = '';
-              let currentMap: Record<string, string> = {};
-              let defaultMap: Record<string, string> = {};
+              const staticPaths: Record<string, string> = {
+                "hero_portrait": "/images/hero_portrait.jpg",
+                "about_portrait": "/images/about_portrait.jpg",
+                "office_1": "/images/office_1.jpg",
+                "office_2": "/images/office_2.jpg",
+                "office_3": "/images/office_3.jpg",
+                "psychotherapy_hero": "/images/psychotherapy_hero.jpg",
+                "neuropsych_materials": "/images/neuropsych_materials.jpg",
+                "lectures_banner": "/images/lectures_banner.jpg",
+                "audience_children": "/images/audience_children.jpg",
+                "audience_teens": "/images/audience_teens.jpg",
+                "audience_adults": "/images/audience_adults.jpg",
+              };
 
-              if (fs.existsSync(embeddedPhotosPath)) {
-                try {
-                  fileContent = fs.readFileSync(embeddedPhotosPath, 'utf-8');
-                  const matchEmbedded = fileContent.match(/export const EMBEDDED_PHOTOS: Record<string, string> = ({[\s\S]*?});/);
-                  if (matchEmbedded) {
-                    currentMap = JSON.parse(matchEmbedded[1]);
-                  }
-                  const matchDefault = fileContent.match(/export const DEFAULT_PHOTOS: Record<string, string> = ({[\s\S]*?});/);
-                  if (matchDefault) {
-                    defaultMap = JSON.parse(matchDefault[1]);
-                  }
-                } catch (e) {
-                  // ignore parse error
-                }
-              }
+              const newFileContent = `/**
+ * Static image mappings pointing to /public/images
+ * Vite copies the public/ folder directly to dist/ during build,
+ * guaranteeing fast, lightweight, and 100% reliable image loading on Vercel and any production server.
+ */
 
-              currentMap[photoKey] = dataUrl;
-              defaultMap[photoKey] = dataUrl;
+export const DEFAULT_PHOTOS: Record<string, string> = ${JSON.stringify(staticPaths, null, 2)};
 
-              const newFileContent = `// Arquivo de persistência direta de fotos no código-fonte.
-// As fotos configuradas ou atualizadas aqui são empacotadas no bundle final (ZIP, GitHub, Vercel).
-
-export const DEFAULT_PHOTOS: Record<string, string> = ${JSON.stringify(defaultMap, null, 2)};
-
-export const EMBEDDED_PHOTOS: Record<string, string> = ${JSON.stringify(currentMap, null, 2)};
+export const EMBEDDED_PHOTOS: Record<string, string> = {
+  ...DEFAULT_PHOTOS,
+};
 `;
 
               fs.writeFileSync(embeddedPhotosPath, newFileContent);
@@ -90,7 +86,7 @@ export const EMBEDDED_PHOTOS: Record<string, string> = ${JSON.stringify(currentM
               res.setHeader('Content-Type', 'application/json');
               res.end(JSON.stringify({ 
                 success: true, 
-                message: `Foto '${photoKey}' gravada fisicamente em public/images/ e em src/data/embeddedPhotos.ts!` 
+                message: `Foto '${photoKey}' gravada fisicamente em public/images/!` 
               }));
 
             } catch (err: any) {
