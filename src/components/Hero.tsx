@@ -1,16 +1,9 @@
 import React from 'react';
-import { ArrowRight, MessageCircle, ShieldCheck, MapPin, Sparkles, Crop } from 'lucide-react';
+import { ArrowRight, MessageCircle, ShieldCheck, MapPin, Sparkles } from 'lucide-react';
 import { PROFESSIONAL_DATA, getWhatsAppUrl } from '../data/professional';
 import { ImageWithFallback } from './ImageWithFallback';
-import { usePhotoStore } from '../lib/photoStore';
-
-interface HeroProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const heroPhotoSrc = getPhoto('hero_portrait');
+export const Hero: React.FC = () => {
+  const heroPhotoSrc = '/images/hero_portrait.jpg';
 
   return (
     <section id="hero" className="relative pt-28 sm:pt-36 pb-16 md:pb-24 overflow-hidden bg-gradient-to-b from-[#F1EAE1]/50 via-[#F8F5F0] to-[#F8F5F0]">
@@ -97,18 +90,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenPhotoEditor }) => {
                   {/* Subtle Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#252A27]/70 via-transparent to-transparent"></div>
 
-                  {/* Photo Label Badge & Quick Edit Button */}
-                  {onOpenPhotoEditor && (
-                    <button
-                      onClick={() => onOpenPhotoEditor('hero_portrait')}
-                      className="absolute top-3 right-3 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                      title="Clique para trocar ou enquadrar esta foto"
-                    >
-                      <Crop className="w-3 h-3" />
-                      <span>Enquadrar Foto</span>
-                    </button>
-                  )}
-
                   {/* On-image info */}
                   <div className="absolute bottom-3 left-3 right-3 text-white">
                     <p className="font-serif text-lg font-semibold leading-tight">
@@ -135,4 +116,3 @@ export const Hero: React.FC<HeroProps> = ({ onOpenPhotoEditor }) => {
     </section>
   );
 };
-

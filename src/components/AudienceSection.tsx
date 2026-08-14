@@ -1,19 +1,12 @@
 import React from 'react';
 import { SectionHeading } from './SectionHeading';
-import { Sparkles, GraduationCap, Briefcase, Users2, Shield, Crop, BookOpen } from 'lucide-react';
+import { Sparkles, GraduationCap, Briefcase, Users2, Shield, BookOpen } from 'lucide-react';
 import { getWhatsAppUrl } from '../data/professional';
 import { ImageWithFallback } from './ImageWithFallback';
-import { usePhotoStore } from '../lib/photoStore';
-
-interface AudienceSectionProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const AudienceSection: React.FC<AudienceSectionProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const childrenPhotoSrc = getPhoto('audience_children');
-  const teensPhotoSrc = getPhoto('audience_teens');
-  const adultsPhotoSrc = getPhoto('audience_adults');
+export const AudienceSection: React.FC = () => {
+  const childrenPhotoSrc = '/images/audience_children.jpg';
+  const teensPhotoSrc = '/images/audience_teens.jpg';
+  const adultsPhotoSrc = '/images/audience_adults.jpg';
 
   return (
     <section className="py-16 sm:py-24 bg-[#F8F5F0] relative">
@@ -42,17 +35,6 @@ export const AudienceSection: React.FC<AudienceSectionProps> = ({ onOpenPhotoEdi
                   fallbackText="Foto • Atendimento Infantil"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-
-                {onOpenPhotoEditor && (
-                  <button
-                    onClick={() => onOpenPhotoEditor('audience_children')}
-                    className="absolute top-2.5 right-2.5 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                    title="Trocar ou enquadrar foto Infantil"
-                  >
-                    <Crop className="w-3 h-3" />
-                    <span>Enquadrar</span>
-                  </button>
-                )}
 
                 <div className="absolute top-2.5 left-2.5 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#D6DDD7]">
                   A partir de 6 anos
@@ -121,17 +103,6 @@ export const AudienceSection: React.FC<AudienceSectionProps> = ({ onOpenPhotoEdi
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
 
-                {onOpenPhotoEditor && (
-                  <button
-                    onClick={() => onOpenPhotoEditor('audience_teens')}
-                    className="absolute top-2.5 right-2.5 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                    title="Trocar ou enquadrar foto de Adolescentes"
-                  >
-                    <Crop className="w-3 h-3" />
-                    <span>Enquadrar</span>
-                  </button>
-                )}
-
                 <div className="absolute top-2.5 left-2.5 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#D6DDD7]">
                   Adolescentes
                 </div>
@@ -199,17 +170,6 @@ export const AudienceSection: React.FC<AudienceSectionProps> = ({ onOpenPhotoEdi
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
 
-                {onOpenPhotoEditor && (
-                  <button
-                    onClick={() => onOpenPhotoEditor('audience_adults')}
-                    className="absolute top-2.5 right-2.5 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                    title="Trocar ou enquadrar foto de Adultos"
-                  >
-                    <Crop className="w-3 h-3" />
-                    <span>Enquadrar</span>
-                  </button>
-                )}
-
                 <div className="absolute top-2.5 left-2.5 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#D6DDD7]">
                   Adultos
                 </div>
@@ -270,4 +230,3 @@ export const AudienceSection: React.FC<AudienceSectionProps> = ({ onOpenPhotoEdi
     </section>
   );
 };
-

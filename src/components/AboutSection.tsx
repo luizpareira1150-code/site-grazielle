@@ -2,16 +2,10 @@ import React from 'react';
 import { SectionHeading } from './SectionHeading';
 import { PROFESSIONAL_DATA } from '../data/professional';
 import { ImageWithFallback } from './ImageWithFallback';
-import { Heart, Shield, Crop } from 'lucide-react';
-import { usePhotoStore } from '../lib/photoStore';
+import { Heart, Shield } from 'lucide-react';
 
-interface AboutSectionProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const aboutPhotoSrc = getPhoto('about_portrait');
+export const AboutSection: React.FC = () => {
+  const aboutPhotoSrc = '/images/about_portrait.jpg';
 
   return (
     <section id="sobre" className="py-16 sm:py-24 bg-[#FCFBF8] border-y border-[#D6DDD7]/70 relative">
@@ -41,17 +35,6 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenPhotoEditor })
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 
-                {onOpenPhotoEditor && (
-                  <button
-                    onClick={() => onOpenPhotoEditor('about_portrait')}
-                    className="absolute top-3 right-3 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                    title="Clique para trocar ou enquadrar esta foto"
-                  >
-                    <Crop className="w-3 h-3" />
-                    <span>Enquadrar</span>
-                  </button>
-                )}
-
                 <div className="absolute top-3 left-3 bg-[#56685E] text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">
                   Retrato Profissional
                 </div>
@@ -117,4 +100,3 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenPhotoEditor })
     </section>
   );
 };
-

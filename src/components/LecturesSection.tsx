@@ -1,17 +1,10 @@
 import React from 'react';
 import { SectionHeading } from './SectionHeading';
 import { LECTURE_FORMATS, getWhatsAppUrl } from '../data/professional';
-import { Building, GraduationCap, Users, MessageCircle, Crop } from 'lucide-react';
+import { Building, GraduationCap, Users, MessageCircle } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
-import { usePhotoStore } from '../lib/photoStore';
-
-interface LecturesSectionProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const LecturesSection: React.FC<LecturesSectionProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const lecturesPhotoSrc = getPhoto('lectures_banner');
+export const LecturesSection: React.FC = () => {
+  const lecturesPhotoSrc = '/images/lectures_banner.jpg';
 
   const getIcon = (idx: number) => {
     switch (idx) {
@@ -42,17 +35,6 @@ export const LecturesSection: React.FC<LecturesSectionProps> = ({ onOpenPhotoEdi
               fallbackText="Foto • Palestras e Eventos"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
-
-            {onOpenPhotoEditor && (
-              <button
-                onClick={() => onOpenPhotoEditor('lectures_banner')}
-                className="absolute top-3 right-3 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                title="Trocar ou enquadrar foto de Palestras"
-              >
-                <Crop className="w-3 h-3" />
-                <span>Enquadrar Foto</span>
-              </button>
-            )}
 
             <div className="absolute top-3 left-3 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-1 rounded-full border border-[#D6DDD7]">
               Palestras & Treinamentos

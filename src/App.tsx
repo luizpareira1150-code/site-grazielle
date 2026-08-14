@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SkipLink } from './components/SkipLink';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -18,61 +18,33 @@ import { FAQAccordion } from './components/FAQAccordion';
 import { FinalCTA } from './components/FinalCTA';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { Footer } from './components/Footer';
-import { PhotoEditorModal } from './components/PhotoEditorModal';
-import { Camera } from 'lucide-react';
 
 export default function App() {
-  const [editorSlotKey, setEditorSlotKey] = useState<string | null>(null);
-
-  const handleOpenPhotoEditor = (slotKey: string) => {
-    setEditorSlotKey(slotKey);
-  };
-
   return (
     <div className="min-h-screen bg-[#F8F5F0] text-[#252A27] font-sans antialiased flex flex-col selection:bg-[#E5EBE6] selection:text-[#56685E]">
       <SkipLink />
       <Header />
 
       <main id="main-content" className="flex-grow">
-        <Hero onOpenPhotoEditor={handleOpenPhotoEditor} />
+        <Hero />
         <RecognitionSection />
-        <NeuropsychologyExplanation onOpenPhotoEditor={handleOpenPhotoEditor} />
+        <NeuropsychologyExplanation />
         <CognitiveDomains />
-        <AudienceSection onOpenPhotoEditor={handleOpenPhotoEditor} />
+        <AudienceSection />
         <EvaluationTimeline />
         <MythsSection />
         <ServicesComparison />
-        <PsychotherapySection onOpenPhotoEditor={handleOpenPhotoEditor} />
-        <AboutSection onOpenPhotoEditor={handleOpenPhotoEditor} />
-        <LecturesSection onOpenPhotoEditor={handleOpenPhotoEditor} />
-        <LocationSection onOpenPhotoEditor={handleOpenPhotoEditor} />
+        <PsychotherapySection />
+        <AboutSection />
+        <LecturesSection />
+        <LocationSection />
         <ContactBanner />
         <FAQAccordion />
         <FinalCTA />
       </main>
 
-      {/* Floating Photo Manager Trigger Button */}
-      <button
-        onClick={() => setEditorSlotKey('hero_portrait')}
-        className="fixed bottom-24 right-6 z-40 bg-[#252A27] hover:bg-[#56685E] text-white px-4 py-2.5 rounded-full shadow-lg border border-white/20 flex items-center gap-2 text-xs font-semibold transition-all hover:scale-105 active:scale-95 group"
-        title="Abrir Gerenciador e Enquadrador de Fotos"
-      >
-        <Camera className="w-4 h-4 text-[#C5D1C7] group-hover:rotate-12 transition-transform" />
-        <span>Gerenciar / Enquadrar Fotos</span>
-      </button>
-
       <FloatingWhatsApp />
       <Footer />
-
-      {/* Photo Editor Modal */}
-      {editorSlotKey && (
-        <PhotoEditorModal
-          isOpen={!!editorSlotKey}
-          onClose={() => setEditorSlotKey(null)}
-          initialSlotKey={editorSlotKey}
-        />
-      )}
     </div>
   );
 }
-

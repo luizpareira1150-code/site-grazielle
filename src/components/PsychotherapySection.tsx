@@ -1,17 +1,10 @@
 import React from 'react';
 import { SectionHeading } from './SectionHeading';
-import { Compass, Users, HeartHandshake, MessageCircle, Crop } from 'lucide-react';
+import { Compass, Users, HeartHandshake, MessageCircle } from 'lucide-react';
 import { getWhatsAppUrl } from '../data/professional';
 import { ImageWithFallback } from './ImageWithFallback';
-import { usePhotoStore } from '../lib/photoStore';
-
-interface PsychotherapySectionProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const PsychotherapySection: React.FC<PsychotherapySectionProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const psychotherapyPhotoSrc = getPhoto('psychotherapy_hero');
+export const PsychotherapySection: React.FC = () => {
+  const psychotherapyPhotoSrc = '/images/psychotherapy_hero.jpg';
 
   return (
     <section id="psicoterapia" className="py-16 sm:py-24 bg-[#F8F5F0] relative">
@@ -35,17 +28,6 @@ export const PsychotherapySection: React.FC<PsychotherapySectionProps> = ({ onOp
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             
-            {onOpenPhotoEditor && (
-              <button
-                onClick={() => onOpenPhotoEditor('psychotherapy_hero')}
-                className="absolute top-3 right-3 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                title="Trocar ou enquadrar foto de Psicoterapia"
-              >
-                <Crop className="w-3 h-3" />
-                <span>Enquadrar Foto</span>
-              </button>
-            )}
-
             <div className="absolute top-3 left-3 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-1 rounded-full border border-[#D6DDD7]">
               Espaço de Psicoterapia
             </div>

@@ -1,17 +1,10 @@
 import React from 'react';
 import { SectionHeading } from './SectionHeading';
-import { FileSearch, Sparkles, UserCheck, Layers, BookOpenCheck, Crop } from 'lucide-react';
+import { FileSearch, Sparkles, UserCheck, Layers, BookOpenCheck } from 'lucide-react';
 import { getWhatsAppUrl } from '../data/professional';
 import { ImageWithFallback } from './ImageWithFallback';
-import { usePhotoStore } from '../lib/photoStore';
-
-interface NeuropsychologyExplanationProps {
-  onOpenPhotoEditor?: (slotKey: string) => void;
-}
-
-export const NeuropsychologyExplanation: React.FC<NeuropsychologyExplanationProps> = ({ onOpenPhotoEditor }) => {
-  const { getPhoto } = usePhotoStore();
-  const materialsPhotoSrc = getPhoto('neuropsych_materials');
+export const NeuropsychologyExplanation: React.FC = () => {
+  const materialsPhotoSrc = '/images/neuropsych_materials.jpg';
 
   const steps = [
     {
@@ -58,17 +51,6 @@ export const NeuropsychologyExplanation: React.FC<NeuropsychologyExplanationProp
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             
-            {onOpenPhotoEditor && (
-              <button
-                onClick={() => onOpenPhotoEditor('neuropsych_materials')}
-                className="absolute top-3 right-3 bg-[#FCFBF8]/90 hover:bg-[#56685E] hover:text-white backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-[#56685E] border border-[#D6DDD7] shadow-xs flex items-center gap-1.5 transition-colors"
-                title="Trocar ou enquadrar foto de Materiais"
-              >
-                <Crop className="w-3 h-3" />
-                <span>Enquadrar Foto</span>
-              </button>
-            )}
-
             <div className="absolute top-3 left-3 bg-[#FCFBF8]/90 text-[#252A27] text-[10px] font-bold px-2.5 py-1 rounded-full border border-[#D6DDD7]">
               Materiais & Instrumentos
             </div>
