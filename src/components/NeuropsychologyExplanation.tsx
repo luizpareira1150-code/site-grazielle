@@ -82,7 +82,7 @@ export const NeuropsychologyExplanation: React.FC<NeuropsychologyExplanationProp
               Instrumentos padronizados e olhar clínico individualizado
             </h3>
             <p className="text-sm sm:text-base text-[#626A65] leading-relaxed">
-              As sessões de avaliação combinam atividades cognitivas direcionadas com momentos de conversa fluida. Todo o material é higienizado, organizado e adaptado à faixa etária e ao nível de fadiga do paciente.
+              Cada resultado conta uma história. Por isso, sua avaliação é feita de forma única, cuidadosa e personalizada.
             </p>
           </div>
         </div>

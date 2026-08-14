@@ -76,6 +76,14 @@ export const PHOTO_SLOTS: PhotoSlotConfig[] = [
     description: 'Apresentação em empresas, escolas e instituições.'
   },
   {
+    key: 'audience_children',
+    title: 'Atendimento Infantil (A partir de 6 anos)',
+    category: 'Público',
+    recommendedAspect: '16:9 (Panorâmica)',
+    aspectRatioValue: 16 / 9,
+    description: 'Foto do cartão de público para crianças a partir de 6 anos.'
+  },
+  {
     key: 'audience_teens',
     title: 'Atendimento a Adolescentes',
     category: 'Público',

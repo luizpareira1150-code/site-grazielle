@@ -110,7 +110,7 @@ export const LecturesSection: React.FC<LecturesSectionProps> = ({ onOpenPhotoEdi
         <div className="p-8 rounded-3xl bg-[#FCFBF8] border border-[#D6DDD7] flex flex-col sm:flex-row items-center justify-between gap-6 max-w-4xl mx-auto shadow-2xs">
           <div className="space-y-1 text-center sm:text-left">
             <p className="font-serif text-lg text-[#252A27] font-medium">
-              Formatos e temas construídos sob medida
+              Formatos e temas únicos construídos para você
             </p>
             <p className="text-xs sm:text-sm text-[#626A65]">
               Os tópicos e a duração da palestra são alinhados conforme o contexto e os objetivos do evento.

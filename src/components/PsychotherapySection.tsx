@@ -59,7 +59,7 @@ export const PsychotherapySection: React.FC<PsychotherapySectionProps> = ({ onOp
               Relação terapêutica fundamentada na confiança e no sigilo
             </h3>
             <p className="text-sm sm:text-base text-[#626A65] leading-relaxed">
-              O ambiente de psicoterapia é preparado para oferecer privacidade e conforto emocional. As conversas e investigações são conduzidas no tempo do paciente, sem julgamentos apressados ou soluções pré-formatadas.
+              O ambiente de psicoterapia é preparado para oferecer privacidade e conforto emocional. As conversas e investigações são conduzidas no tempo do paciente, sem julgamentos ou soluções pré-formatadas.
             </p>
           </div>
         </div>
@@ -141,7 +141,7 @@ export const PsychotherapySection: React.FC<PsychotherapySectionProps> = ({ onOp
               Compreender a história, o contexto e os afetos
             </h3>
             <p className="text-sm sm:text-base text-[#E5EBE6] leading-relaxed font-light">
-              Na prática clínica, Grazielle busca integrar a escuta singular da história da pessoa com a atenção aos seus padrões relacionais e emocionais na vida cotidiana.
+              Na prática clínica, busco integrar a escuta singular da história da pessoa com a atenção aos seus padrões relacionais e emocionais na vida cotidiana.
             </p>
           </div>
 

@@ -95,13 +95,13 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenPhotoEditor })
 
               <div className="space-y-4 text-base sm:text-lg text-[#252A27] leading-relaxed font-normal">
                 <p>
-                  Sou psicóloga desde 2018 e, em 2025, concluí minha formação em Neuropsicologia, ampliando minha atuação e meu olhar sobre o desenvolvimento humano, os aspectos emocionais e os processos cognitivos.
+                  Sou psicóloga desde 2018, em 2025, concluí minha formação em Neuropsicologia, ampliando minha atuação e meu olhar sobre o desenvolvimento humano, os aspectos emocionais e os processos cognitivos.
                 </p>
                 <p>
                   Ao longo da minha trajetória profissional, tive a oportunidade de atuar em diferentes contextos da saúde pública, incluindo o Consultório na Rua e o setor de Epidemiologia da Prefeitura. Essas vivências reforçaram a importância de uma prática sensível às realidades singulares, acolhedora e conectada com a história de cada pessoa.
                 </p>
                 <p>
-                  Atualmente, atuo como neuropsicóloga na Prefeitura de Barra Mansa e também em meu consultório particular, oferecendo atendimento psicológico e avaliação neuropsicológica para adolescentes e adultos.
+                  Atualmente, atuo como neuropsicóloga e em meu consultório particular, oferecendo atendimento psicológico e avaliação neuropsicológica para crianças (a partir de 6 anos), adolescentes e adultos.
                 </p>
                 <p>
                   Além da prática clínica, sou palestrante e desenvolvo conteúdos voltados à promoção da saúde mental, ao bem-estar e ao desenvolvimento pessoal e profissional.

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SectionHeading } from './SectionHeading';
 import { COGNITIVE_DOMAINS } from '../data/professional';
-import { Target, Brain, Compass, MessageSquareText, HeartHandshake, CheckCircle2, Info } from 'lucide-react';
+import { Target, Brain, Compass, MessageSquareText, HeartHandshake, CheckCircle2, Info, ChevronRight } from 'lucide-react';
 
 export const CognitiveDomains: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(COGNITIVE_DOMAINS[0].id);
@@ -64,7 +64,15 @@ export const CognitiveDomains: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#DED2C2]' : 'bg-[#829287]/40'}`} />
+                    <div className="flex items-center">
+                      <ChevronRight
+                        className={`w-5 h-5 transition-transform duration-200 ${
+                          isActive
+                            ? 'text-white translate-x-1'
+                            : 'text-[#829287] group-hover:text-[#56685E] group-hover:translate-x-1'
+                        }`}
+                      />
+                    </div>
                   </button>
                 );
               })}

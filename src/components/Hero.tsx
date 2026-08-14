@@ -37,7 +37,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenPhotoEditor }) => {
 
             {/* H1 Main Heading */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl text-[#252A27] font-serif leading-[1.15] font-normal tracking-tight">
-              Compreender o funcionamento cognitivo também é compreender a pessoa <span className="italic text-[#56685E]">por inteiro.</span>
+              Seu funcionamento é único. Sua história também merece ser <span className="italic text-[#56685E]">compreendida.</span>
             </h1>
 
             {/* Support Copy */}
